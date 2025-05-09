@@ -1,4 +1,3 @@
-````markdown
 ## Step-by-Step Setup Instructions
 
 ### 1. Clone the Repository
@@ -9,7 +8,7 @@ git clone https://github.com/lssb2003/interview-prep-app.git
 
 # Navigate to the project directory
 cd interview-prep-app
-````
+```
 
 ### 2. Install Dependencies
 
