@@ -81,6 +81,7 @@ const SessionSetup: React.FC = () => {
 
         try {
             setLoading(true);
+            toast.loading('Creating your practice session...'); // Show loading toast
 
             // Create practice session in Firestore
             const sessionId = await createPracticeSession(
@@ -89,15 +90,21 @@ const SessionSetup: React.FC = () => {
                 sessionType === 'job-specific' ? selectedJob : undefined
             );
 
+            // Do NOT dismiss the toast here - let PracticeSession handle it
+            // The loading state will continue seamlessly between the two components
+
             // Navigate to practice session
             navigate(`/practice/session/${sessionId}`);
         } catch (error) {
             console.error('Error creating practice session:', error);
+            toast.dismiss(); // Dismiss the toast on error
             toast.error('Failed to start practice session. Please try again.');
         } finally {
             setLoading(false);
         }
     };
+
+
 
     if (loading && !userProfile) {
         return (

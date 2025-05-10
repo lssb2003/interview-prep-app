@@ -1,4 +1,4 @@
-// src/components/practice/PracticeSession.tsx - Additional fixes for Firebase error
+// src/components/practice/PracticeSession.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -43,17 +43,22 @@ const PracticeSession: React.FC = () => {
 
             try {
                 setLoading(true);
+                // Set generatingQuestions to true immediately for new sessions
+                // This prevents the "No questions available" error from flashing
+                setGeneratingQuestions(true);
 
                 // Fetch practice session
                 const sessionData = await getPracticeSession(sessionId);
 
                 if (!sessionData) {
                     toast.error('Practice session not found');
+                    setGeneratingQuestions(false);
                     return navigate('/practice/setup');
                 }
 
                 if (sessionData.userId !== currentUser.uid) {
                     toast.error('You do not have access to this session');
+                    setGeneratingQuestions(false);
                     return navigate('/practice/setup');
                 }
 
@@ -64,6 +69,7 @@ const PracticeSession: React.FC = () => {
                 const profile = await getUserProfile(currentUser.uid);
                 if (!profile) {
                     toast.error('User profile not found');
+                    setGeneratingQuestions(false);
                     return navigate('/profile/setup');
                 }
                 setUserProfile(profile);
@@ -75,10 +81,18 @@ const PracticeSession: React.FC = () => {
                     setJob(jobData);
                 }
 
-                // Generate questions if not already generated
+                // Check if this is a new session (no questions)
                 if (!sessionData.questions || sessionData.questions.length === 0) {
+                    // Only show one loading toast
+                    toast.dismiss();
+                    toast.loading('Generating personalized interview questions...');
+
+                    // Keep generatingQuestions as true and continue to generate questions
                     await generateSessionQuestions(sessionData, profile, jobData);
                 } else {
+                    // Existing session with questions - no need to generate
+                    setGeneratingQuestions(false);
+
                     // Set current question
                     const questionIndex = sessionData.currentQuestionIndex || 0;
                     if (sessionData.questions.length > questionIndex) {
@@ -92,6 +106,7 @@ const PracticeSession: React.FC = () => {
             } catch (error) {
                 console.error('Error loading session data:', error);
                 toast.error('Failed to load session data. Please try again.');
+                setGeneratingQuestions(false);
             } finally {
                 setLoading(false);
             }
@@ -99,6 +114,7 @@ const PracticeSession: React.FC = () => {
 
         loadSessionData();
     }, [sessionId, currentUser, navigate]);
+
 
     // Generate questions for the session
     const generateSessionQuestions = async (
@@ -109,8 +125,8 @@ const PracticeSession: React.FC = () => {
         if (!sessionId) return;
 
         try {
-            setGeneratingQuestions(true);
-            toast.loading('Generating personalized interview questions...');
+            // We're already showing the loading indicator from the useEffect, so no need to set it again
+            // Just keep the generatingQuestions state as true
 
             // Generate questions using OpenAI
             const questionsData = await generateQuestions(
@@ -129,7 +145,6 @@ const PracticeSession: React.FC = () => {
             }
 
             // Format questions with fallbacks in case of missing data
-            // THIS IS THE IMPORTANT FIX - We convert any undefined to null
             const questions: Question[] = questionsData.map((q, index) => {
                 // Create clean question object with no undefined values
                 const cleanQuestion: Question = {
@@ -139,7 +154,7 @@ const PracticeSession: React.FC = () => {
                     jobSpecific: !!job
                 };
 
-                // Only add jobId if it exists, otherwise don't include the property at all
+                // Only add jobId if it exists
                 if (job && job.id) {
                     cleanQuestion.jobId = job.id;
                 }
@@ -188,6 +203,7 @@ const PracticeSession: React.FC = () => {
             setGeneratingQuestions(false);
         }
     };
+
 
 
     // Request feedback for the current answer
@@ -387,7 +403,8 @@ const PracticeSession: React.FC = () => {
     // Check if we have valid questions
     const hasQuestions = session?.questions && Array.isArray(session.questions) && session.questions.length > 0;
 
-    if (!hasQuestions) {
+    // Only show the "No questions available" error if we're not generating questions
+    if (!hasQuestions && !generatingQuestions) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-8 text-center">
                 <h1 className="text-2xl font-bold text-red-600 mb-4">No questions available</h1>
@@ -475,7 +492,7 @@ const PracticeSession: React.FC = () => {
                             value={userAnswer}
                             onChange={(e) => setUserAnswer(e.target.value)}
                             disabled={savedAnswer}
-                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                            className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md resize-none"
                             placeholder="Type your answer here..."
                         />
                     </div>
@@ -554,7 +571,7 @@ const PracticeSession: React.FC = () => {
                                         placeholder="Add custom tag"
                                         value={customTagInput}
                                         onChange={(e) => setCustomTagInput(e.target.value)}
-                                        className="border-gray-300 rounded-l-md text-xs py-0.5 px-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="border border-gray-300 rounded-l-md text-xs py-0.5 px-2 focus:ring-indigo-500 focus:border-indigo-500"
                                         onKeyPress={(e) => {
                                             if (e.key === 'Enter' && customTagInput.trim()) {
                                                 handleAddCustomTag(customTagInput);

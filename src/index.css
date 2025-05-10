@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+textarea {
+  resize: none;
+}
+
 @keyframes highlight-pulse {
   0% { background-color: #ffffff; }
   30% { background-color: #e8f0fe; }
