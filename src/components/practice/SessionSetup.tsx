@@ -106,6 +106,7 @@ const SessionSetup: React.FC = () => {
 
 
 
+
     if (loading && !userProfile) {
         return (
             <div className="min-h-screen flex items-center justify-center">

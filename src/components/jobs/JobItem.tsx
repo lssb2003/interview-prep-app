@@ -25,12 +25,31 @@ const JobItem: React.FC<JobItemProps> = ({ job }) => {
         }
     };
 
-    const formatDate = (date: Date) => {
-        return new Date(date).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-        });
+    const formatDate = (date: any) => {
+        // Check if date is a Firebase timestamp (has seconds and nanoseconds)
+        if (date && typeof date === 'object' && date.seconds !== undefined) {
+            // Convert Firebase timestamp to JS Date
+            return new Date(date.seconds * 1000).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+            });
+        }
+        
+        // Try parsing as a regular date if it's a string or number
+        if (date) {
+            const jsDate = new Date(date);
+            if (!isNaN(jsDate.getTime())) {
+                return jsDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                });
+            }
+        }
+        
+        // Fallback if date is invalid
+        return 'Date not available';
     };
 
     return (
