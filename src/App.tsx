@@ -20,6 +20,7 @@ import JobTracker from './components/jobs/JobTracker';
 import JobDetail from './components/jobs/JobDetail';
 import JobForm from './components/jobs/JobForm';
 import Layout from './components/layout/Layout';
+import UserTestingForm from './components/testing/UserTestingForm';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/user-testing" element={<UserTestingForm />} />
 
           {/* Private Routes */}
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
