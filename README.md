@@ -74,8 +74,3 @@ npm start
 ```
 
 The application should now be running at [http://localhost:3000](http://localhost:3000)
-
-```
-
-Let me know if you'd like this section collapsible or want to add badges or a table of contents.
-```
